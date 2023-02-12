@@ -8,6 +8,4 @@ class Blog(Base):
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String)
     body = Column(String)
-    # is_active = Column(Boolean, default=True)
-
-    # items = relationship("Item", back_populates="owner")
+    
