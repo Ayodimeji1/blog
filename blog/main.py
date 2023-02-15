@@ -1,9 +1,10 @@
 from typing import List
 from fastapi import FastAPI, Depends, status, Response, HTTPException
-from. import schemas, models 
+from . import schemas, models, hashing
 from .database import engine, SessionLocal
 from sqlalchemy.orm import Session
-from passlib.context import CryptContext
+from .hashing import Hash 
+
 
 
 app = FastAPI()
@@ -17,7 +18,7 @@ def get_db():
     finally:
         db.close    
 
-@app.post('/blog')
+@app.post('/blog', tags=['blogs'])
 def create(request: schemas.Blog, db:Session = Depends(get_db)):
     new_blog = models.Blog(title=request.title, body=request.body)
     db.add(new_blog)
@@ -26,7 +27,7 @@ def create(request: schemas.Blog, db:Session = Depends(get_db)):
     return new_blog 
 
 
-@app.delete('/blog/{id}',status_code=status.HTTP_204_NO_CONTENT)
+@app.delete('/blog/{id}',status_code=status.HTTP_204_NO_CONTENT, tags=['blogs'])
 def destroy(id, db:Session = Depends(get_db)):
     blog = db.query(models.Blog).filter(models.Blog.id==id)
     if not blog.first():
@@ -34,10 +35,10 @@ def destroy(id, db:Session = Depends(get_db)):
                              detail=f'Blog with id {id} notfound')
     blog.delete(synchronize_session=False)
     db.commit()
-    return 'done'
+    return 'deleted'
 
 
-@app.put('/blog/{id}', status_code=status.HTTP_202_ACCEPTED)
+@app.put('/blog/{id}', status_code=status.HTTP_202_ACCEPTED, tags=['blogs'])
 def update(id, request: schemas.Blog, db: Session = Depends(get_db)):
     blog = db.query(models.Blog).filter(models.Blog.id == id)
     if not blog.first():
@@ -49,12 +50,12 @@ def update(id, request: schemas.Blog, db: Session = Depends(get_db)):
 
 
 
-@app.get('/blog', response_model = List[schemas.ShowBlog])
+@app.get('/blog', response_model = List[schemas.ShowBlog], tags=['blogs'])
 def get_all(db: Session = Depends(get_db)):
     blogs = db.query(models.Blog).all()
     return blogs
 
-@app.get('/blog/{id}', status_code=200, response_model=schemas.ShowBlog)
+@app.get('/blog/{id}', status_code=200, response_model=schemas.ShowBlog, tags=['blogs'])
 def show_blog(id, response: Response, db: Session = Depends(get_db)):
     blog = db.query(models.Blog).filter(models.Blog.id==id).first()
     if not blog:
@@ -65,11 +66,23 @@ def show_blog(id, response: Response, db: Session = Depends(get_db)):
 
 
 
-@app.post('/user')
-def create_user(request: schemas.User, db:Session = Depends(get_db)):
-    new_user = models.User(name=request.name, email=request.email, password=request.password)
+
+
+@app.post('/user', response_model=schemas.ShowUser, tags=['users'])
+def create_user(request: schemas.User, db:Session = Depends(get_db)):   
+    new_user = models.User(name=request.name, email=request.email, password=Hash.bcrypt(request.password))
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
-    return new_user
+    return new_user 
 
+
+
+@app.get('/user/{id}', response_model=schemas.ShowUser, tags=['users'])
+def get_user(id:int, db:Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.id==id).first()
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'User not found')
+        # response.status_code = status.HTTP_404_NOT_FOUND
+        # return {'detail':f'Blog with id {id} not available'}
+    return user
