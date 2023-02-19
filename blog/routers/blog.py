@@ -7,11 +7,16 @@ from typing import List
 
 
 
-router = APIRouter()
+router = APIRouter(
+    prefix='/blog',
+    tags=['Blogs'],
+)
+
+
 get_db = database.get_db
 
 
-@router.post('/blog', tags=['blogs'])
+@router.post('/')
 def create(request: schemas.Blog, db:Session = Depends(get_db)):
     new_blog = models.Blog(title=request.title, body=request.body, user_id=1)
     db.add(new_blog)
@@ -20,7 +25,7 @@ def create(request: schemas.Blog, db:Session = Depends(get_db)):
     return new_blog 
 
 
-@router.delete('/blog/{id}',status_code=status.HTTP_204_NO_CONTENT, tags=['blogs'])
+@router.delete('/{id}',status_code=status.HTTP_204_NO_CONTENT)
 def destroy(id, db:Session = Depends(get_db)):
     blog = db.query(models.Blog).filter(models.Blog.id==id)
     if not blog.first():
@@ -31,7 +36,7 @@ def destroy(id, db:Session = Depends(get_db)):
     return 'deleted'
 
 
-@router.put('/blog/{id}', status_code=status.HTTP_202_ACCEPTED, tags=['blogs'])
+@router.put('/{id}', status_code=status.HTTP_202_ACCEPTED)
 def update(id, request: schemas.Blog, db: Session = Depends(get_db)):
     blog = db.query(models.Blog).filter(models.Blog.id == id)
     if not blog.first():
@@ -43,14 +48,14 @@ def update(id, request: schemas.Blog, db: Session = Depends(get_db)):
 
 
 
-@router.get('/blog', response_model = List[schemas.ShowBlog], tags=['blogs'])
+@router.get('/', response_model = List[schemas.ShowBlog])
 def get_all(db: Session = Depends(get_db)):
     blogs = db.query(models.Blog).all()
     if not blogs:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'No blogs found')
     return blogs
 
-@router.get('/blog/{id}', status_code=200, response_model=schemas.ShowBlog, tags=['blogs'])
+@router.get('/{id}', status_code=200, response_model=schemas.ShowBlog)
 def show_blog(id, db: Session = Depends(get_db)):
     blog = db.query(models.Blog).filter(models.Blog.id==id).first()
     if not blog:
