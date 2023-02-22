@@ -1,16 +1,17 @@
 from fastapi import FastAPI
 from blog import models
-from blog.routers import users, blog
+from blog.routers import users, blog, authentication
 from .database import engine
-
-
 
 
 
 app = FastAPI()
 
+
+app.include_router(authentication.router)
 app.include_router(users.router)
 app.include_router(blog.router)
+
 
 models.Base.metadata.create_all(bind=engine)
 
