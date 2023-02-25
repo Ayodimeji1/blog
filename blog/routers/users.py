@@ -31,3 +31,10 @@ def create_user(request: schemas.User, db:Session = Depends(get_db)):
 def get_user(id:int, db:Session = Depends(get_db)):
     return user.get_one(id, db)
 
+
+
+@router.delete('/{id}',status_code=status.HTTP_204_NO_CONTENT)
+def delete(id:int, db:Session = Depends(get_db)):
+    return user.delete_user(id, db)
+
+

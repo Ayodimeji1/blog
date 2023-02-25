@@ -20,7 +20,7 @@ class User(BaseModel):
 class ShowUser(BaseModel):
     name: str
     email: str
-    blogs: List[Blog] = []
+    blogs: List[Blog] 
 
     class Config():
         orm_mode = True 
