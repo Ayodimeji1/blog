@@ -1,9 +1,6 @@
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
-from blog import schemas, models
-# from ..hashing import Hash
-from .. import models, utils
-# from blog import hashing
+from .. import models, schemas
 from passlib.context import CryptContext
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -19,7 +16,6 @@ def get_all(db: Session):
 
 def create(request: schemas.User, db:Session):   
     hashed_password = pwd_context.hash(request.password)
-
     new_user = models.User(name=request.name, email=request.email, password=hashed_password)
     db.add(new_user)
     db.commit()
