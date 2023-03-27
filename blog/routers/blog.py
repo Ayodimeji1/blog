@@ -1,4 +1,6 @@
 from fastapi import APIRouter, Depends, status, HTTPException
+
+from blog import oauth2
 from ..routers import users
 from .. import database, schemas, models
 from sqlalchemy.orm import Session
@@ -18,7 +20,7 @@ get_db = database.get_db
 
 
 @router.post('/')
-def create(request: schemas.Blog, db:Session = Depends(get_db)):
+def create(request: schemas.Blog, db:Session = Depends(get_db), get_current_user: int = Depends(oauth2.get_current_user)):
     return blog.create(request, db) 
 
 
