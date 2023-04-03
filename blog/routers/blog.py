@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 # from ..hashing import Hash 
 from typing import List
 from ..repositories import blog
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
 
 
@@ -31,7 +32,7 @@ def delete(id:int, db:Session = Depends(get_db)):
 
 
 @router.put('/{id}', status_code=status.HTTP_202_ACCEPTED)
-def update(id:int, request: schemas.Blog, db: Session = Depends(get_db)):
+def update(id:int, request: schemas.Blog, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     return blog.update(id, request, db)
 
 
